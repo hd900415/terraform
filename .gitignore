@@ -1,0 +1,45 @@
+# Local .terraform directories
+.terraform/*
+
+.environments/dev/.terraform/*
+.environments/prod/.terraform/*
+.infrastructure/.terraform/*
+./infrastructure/.terraform.lock.hcl
+
+
+
+# Terraform plan files
+*.tfplan
+
+# Terraform state files
+terraform.tfstate
+terraform.tfstate.backup
+*.tfstate.*
+crash.log
+
+# Sensitive variable files
+*.tfvars
+*.tfvars.json
+
+# Ignore override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Ignore generated files
+.terraform.lock.hcl
+
+# Ignore editor and OS-specific files
+*.swp
+*.bak
+*.log
+.DS_Store
+.idea/
+.vscode/
+environments/dev/.terraform/providers/registry.terraform.io/hashicorp/aws/6.2.0/windows_amd64/terraform-provider-aws_v6.2.0_x5.exe
+infrastructure/bootstrap/.terraform/providers/registry.terraform.io/hashicorp/aws/6.2.0/windows_amd64/terraform-provider-aws_v6.2.0_x5.exe
+environments/dev/.terraform/providers/registry.terraform.io/hashicorp/aws/6.2.0/linux_amd64/LICENSE.txt
+environments/dev/.terraform/providers/registry.terraform.io/hashicorp/aws/6.2.0/windows_amd64/LICENSE.txt
+environments/dev/.terraform/providers/registry.terraform.io/hashicorp/aws/6.2.0/linux_amd64/terraform-provider-aws_v6.2.0_x5
+infrastructure/bootstrap/.terraform/providers/registry.terraform.io/hashicorp/aws/6.2.0/windows_amd64/LICENSE.txt

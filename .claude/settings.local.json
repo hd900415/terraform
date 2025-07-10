@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mv:*)",
+      "Bash(mkdir:*)",
+      "Bash(rm:*)",
+      "Bash(terraform destroy:*)",
+      "Bash(terraform plan:*)",
+      "Bash(terraform apply:*)",
+      "Bash(aws ec2 describe-images:*)",
+      "Bash(aws ec2 describe-key-pairs:*)",
+      "Bash(terraform:*)"
+    ],
+    "deny": []
+  }
+}
