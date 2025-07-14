@@ -6,7 +6,7 @@
 .infrastructure/.terraform/*
 ./infrastructure/.terraform.lock.hcl
 
-
+.environments/game/.terraform/*
 
 # Terraform plan files
 *.tfplan
