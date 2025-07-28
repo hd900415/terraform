@@ -70,19 +70,108 @@ variable "env" {
 }
 
 
-variable "node_groups" {
-  description = "Map of EKS node groups with their configurations"
-  type        = map(object({
-    desired_size = number
-    max_size     = number
-    min_size     = number
-    instance_types = list(string)
-    capacity_type  = string
-    disk_size      = number
-    max_unavailable = optional(number, 1)
-  }))
-  default     = {}
-  
+# 节点组数量和名称 (类似 EC2 配置)
+variable "node_group_count" {
+  description = "Number of node groups to create"
+  type        = number
+  default     = 0
+}
+
+variable "node_group_names" {
+  description = "List of node group names"
+  type        = list(string)
+  default     = []
+}
+
+# 基本配置数组
+variable "desired_sizes" {
+  description = "List of desired sizes for each node group"
+  type        = list(number)
+  default     = []
+}
+
+variable "max_sizes" {
+  description = "List of maximum sizes for each node group"
+  type        = list(number)
+  default     = []
+}
+
+variable "min_sizes" {
+  description = "List of minimum sizes for each node group"
+  type        = list(number)
+  default     = []
+}
+
+variable "instance_types" {
+  description = "List of instance types for each node group"
+  type        = list(list(string))
+  default     = []
+}
+
+variable "capacity_types" {
+  description = "List of capacity types for each node group"
+  type        = list(string)
+  default     = []
+}
+
+variable "disk_sizes" {
+  description = "List of disk sizes for each node group"
+  type        = list(number)
+  default     = []
+}
+
+variable "volume_types" {
+  description = "List of volume types for each node group"
+  type        = list(string)
+  default     = []
+}
+
+variable "ami_types" {
+  description = "List of AMI types for each node group"
+  type        = list(string)
+  default     = []
+}
+
+variable "key_names" {
+  description = "List of key names for each node group"
+  type        = list(string)
+  default     = []
+}
+
+variable "max_unavailables" {
+  description = "List of max unavailable for each node group"
+  type        = list(number)
+  default     = []
+}
+
+# 子网配置
+variable "subnet_types" {
+  description = "List of subnet types for each node group (private/public)"
+  type        = list(string)
+  default     = []
+}
+
+# 标签和污点配置
+variable "node_labels" {
+  description = "List of labels for each node group"
+  type        = list(map(string))
+  default     = []
+}
+
+variable "node_tags" {
+  description = "List of tags for each node group"
+  type        = list(map(string))
+  default     = []
+}
+
+variable "node_taints" {
+  description = "List of taints for each node group"
+  type        = list(list(object({
+    key    = string
+    value  = string
+    effect = string
+  })))
+  default     = []
 }
 variable "ec2_ssh_key" {
   description = "EC2 SSH key pair name for EKS worker nodes"

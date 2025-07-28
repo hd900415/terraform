@@ -26,37 +26,56 @@ resource "aws_eks_cluster" "main" {
     ]
 }
 
-# eks node group
+# eks node group (使用 count 而非 for_each，类似 EC2 配置)
 resource "aws_eks_node_group" "main" {
-  for_each = var.node_groups
+  count = var.node_group_count
+  
   cluster_name    = aws_eks_cluster.main.name
-  node_group_name = each.key
-  #node_group_name = "${var.cluster_name}-node-group-${var.env}"
+  node_group_name = var.node_group_names[count.index]
   node_role_arn   = aws_iam_role.eks_node.arn
-  subnet_ids      = var.private_subnet_ids
+  
+  # 动态选择子网 (private 或 public)
+  subnet_ids = var.subnet_types[count.index] == "public" ? var.public_subnet_ids : var.private_subnet_ids
 
   scaling_config {
-    desired_size = each.value.desired_size
-    max_size     = each.value.max_size
-    min_size     = each.value.min_size
+    desired_size = var.desired_sizes[count.index]
+    max_size     = var.max_sizes[count.index]
+    min_size     = var.min_sizes[count.index]
   }
+  
   update_config {
-    max_unavailable = 1
+    max_unavailable = var.max_unavailables[count.index]
   }
 
+  instance_types = var.instance_types[count.index]
+  capacity_type  = var.capacity_types[count.index]
+  disk_size      = var.disk_sizes[count.index]
+  ami_type       = var.ami_types[count.index]
 
-  instance_types = each.value.instance_types
-  capacity_type = each.value.capacity_type
-  disk_size = each.value.disk_size
+  # 远程访问配置 (如果提供了 key_name)
+  dynamic "remote_access" {
+    for_each = var.key_names[count.index] != "" ? [1] : []
+    content {
+      ec2_ssh_key = var.key_names[count.index]
+      source_security_group_ids = [aws_security_group.eks_node.id]
+    }
+  }
 
-  # remote_access {
-  #   ec2_ssh_key = var.ec2_ssh_key
-  #   source_security_group_ids = [ aws_security_group.eks.id ]
-  # }
+  # 污点配置
+  dynamic "taint" {
+    for_each = var.node_taints[count.index]
+    content {
+      key    = taint.value.key
+      value  = taint.value.value
+      effect = taint.value.effect
+    }
+  }
 
+  # 标签配置
+  labels = var.node_labels[count.index]
 
-  tags = merge(var.common_tags, {
-    Name = "${var.cluster_name}-${each.key}-${var.env}"
+  tags = merge(var.common_tags, var.node_tags[count.index], {
+    Name = "${var.cluster_name}-${var.node_group_names[count.index]}-${var.env}"
   })
 
   depends_on = [

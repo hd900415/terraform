@@ -26,6 +26,83 @@ locals {
   }
 }
 
+# EKS 节点组配置映射 (类似 EC2 的 locals 配置)
+locals {
+  eks_node_configs = {
+    # web = {
+    #   desired_size     = 2
+    #   max_size         = 4
+    #   min_size         = 1
+    #   instance_types   = ["c5.large"]
+    #   capacity_type    = "ON_DEMAND"
+    #   disk_size        = 100
+    #   volume_type      = "gp3"
+    #   ami_type         = "AL2_x86_64"
+    #   subnet_type      = "private"
+    #   key_name         = "terraform-key"
+    #   max_unavailable  = 1
+    #   labels = {
+    #     role = "web"
+    #     env  = var.env
+    #   }
+    #   tags = {
+    #     NodeGroup = "web"
+    #     Environment = var.env
+    #   }
+    # }
+    # worker = {
+    #   desired_size     = 3
+    #   max_size         = 6
+    #   min_size         = 1
+    #   instance_types   = ["t3.medium"]
+    #   capacity_type    = "ON_DEMAND"
+    #   disk_size        = 50
+    #   volume_type      = "gp3"
+    #   ami_type         = "AL2_x86_64"
+    #   subnet_type      = "private"
+    #   key_name         = "terraform-key"
+    #   max_unavailable  = 1
+    #   labels = {
+    #     role = "worker"
+    #     env  = var.env
+    #   }
+    #   tags = {
+    #     NodeGroup = "worker"
+    #     Environment = var.env
+    #   }
+    # }
+    # gpu = {
+    #   desired_size     = 1
+    #   max_size         = 2
+    #   min_size         = 0
+    #   instance_types   = ["g4dn.xlarge"]
+    #   capacity_type    = "SPOT"
+    #   disk_size        = 100
+    #   volume_type      = "gp3"
+    #   ami_type         = "AL2_x86_64_GPU"
+    #   subnet_type      = "private"
+    #   key_name         = "terraform-key"
+    #   max_unavailable  = 1
+    #   taints = [
+    #     {
+    #       key    = "nvidia.com/gpu"
+    #       value  = "true"
+    #       effect = "NO_SCHEDULE"
+    #     }
+    #   ]
+    #   labels = {
+    #     role = "gpu"
+    #     "nvidia.com/gpu" = "true"
+    #     env  = var.env
+    #   }
+    #   tags = {
+    #     NodeGroup = "gpu"
+    #     Environment = var.env
+    #   }
+    # }
+  }
+}
+
 module "aws_vpc" {
   source    = "../../modules/aws/vpc"
   providers = {
@@ -95,35 +172,36 @@ module "eks" {
   providers = {
     aws = aws.aws
   }
-  cluster_name = "game-eks-cluster"
-  kubernetes_version = "1.33"
+  cluster_name = "eks-cluster-${var.env}"
+  kubernetes_version = "1.28"
   vpc_id       = module.eks_vpc.vpc_id
   private_subnet_ids = module.eks_vpc.private_subnet_ids
   public_subnet_ids  = module.eks_vpc.public_subnet_ids
   #subnet_ids   = module.eks_vpc.private_subnet_ids
 
-  # EKS Worker Node 配置
-  node_groups = {
-    worker_nodes = {
-      desired_size   = 2
-      max_size       = 3
-      min_size       = 1
-      instance_types = ["m5.large"]
-      capacity_type  = "ON_DEMAND"
-      disk_size      = 100
-      #subnet_ids     = module.eks_vpc.private_subnet_ids
-      #security_groups = [aws_security_group.eks_node.id]
-    }
-    eks_nodes = {
-      desired_size   = 2
-      max_size       = 3
-      min_size       = 1
-      instance_types = ["c5.xlarge"]
-      capacity_type  = "ON_DEMAND"
-      disk_size      = 280
-      max_unavailable = 1 # 可选，默认值为 1
-    }
-  }
+  # 使用 locals 配置的节点组
+  node_group_count = length(local.eks_node_configs)
+  node_group_names = keys(local.eks_node_configs)
+  
+  # 节点组配置数组 (类似 EC2 的配置方式)
+  desired_sizes    = [for config in local.eks_node_configs : config.desired_size]
+  max_sizes        = [for config in local.eks_node_configs : config.max_size]
+  min_sizes        = [for config in local.eks_node_configs : config.min_size]
+  instance_types   = [for config in local.eks_node_configs : config.instance_types]
+  capacity_types   = [for config in local.eks_node_configs : config.capacity_type]
+  disk_sizes       = [for config in local.eks_node_configs : config.disk_size]
+  volume_types     = [for config in local.eks_node_configs : config.volume_type]
+  ami_types        = [for config in local.eks_node_configs : config.ami_type]
+  key_names        = [for config in local.eks_node_configs : config.key_name]
+  max_unavailables = [for config in local.eks_node_configs : config.max_unavailable]
+  
+  # 子网配置
+  subnet_types = [for config in local.eks_node_configs : config.subnet_type]
+  
+  # 标签和污点配置
+  node_labels = [for config in local.eks_node_configs : config.labels]
+  node_tags   = [for config in local.eks_node_configs : config.tags]
+  node_taints = [for config in local.eks_node_configs : lookup(config, "taints", [])]
   # ec2_ssh_key = "terraform-key"
   endpoint_private_access = true
   public_access_cidrs = [ "0.0.0.0/0" ]
