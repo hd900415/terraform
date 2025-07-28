@@ -179,6 +179,10 @@ variable "ec2_ssh_key" {
   default     = ""
   
 }
-
+variable "node_group_versions" {
+  description = "List of EKS node group versions"
+  type        = list(string)
+  default     = []
+}
 
 

@@ -33,6 +33,9 @@ resource "aws_eks_node_group" "main" {
   cluster_name    = aws_eks_cluster.main.name
   node_group_name = var.node_group_names[count.index]
   node_role_arn   = aws_iam_role.eks_node.arn
+
+  # 添加 node group version
+  version = length(var.node_group_versions) > 0 ? var.node_group_versions[count.index] : var.kubernetes_version
   
   # 动态选择子网 (private 或 public)
   subnet_ids = var.subnet_types[count.index] == "public" ? var.public_subnet_ids : var.private_subnet_ids
